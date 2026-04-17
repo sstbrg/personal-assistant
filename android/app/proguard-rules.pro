@@ -1,0 +1,5 @@
+-keepattributes Signature, *Annotation*, EnclosingMethod, InnerClasses
+-keep class androidx.room.** { *; }
+-keep class com.stas.automator.** { *; }
+-dontwarn okhttp3.**
+-dontwarn okio.**

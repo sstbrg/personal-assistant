@@ -1,0 +1,24 @@
+<resources>
+    <string name="app_name">Private AI Automator</string>
+    <string name="listener_label">Private AI Automator — WhatsApp bridge</string>
+
+    <string name="hint_webapp_url">Apps Script Web App URL (https://…/exec)</string>
+    <string name="hint_hmac_secret">HMAC secret (from Apps Script Setup.bootstrap)</string>
+
+    <string name="btn_save">Save settings</string>
+    <string name="btn_grant_access">Grant Notification Access</string>
+    <string name="btn_start_service">Start forwarding service</string>
+    <string name="btn_stop_service">Stop forwarding service</string>
+    <string name="btn_test">Send test event</string>
+    <string name="btn_edit_allowlist">Edit chat allowlist</string>
+
+    <string name="label_status">Status</string>
+    <string name="label_allowlist">Allowed WhatsApp chats (comma-separated; empty = deny all)</string>
+
+    <string name="warn_no_access">Notification access not granted — WhatsApp ingestion is inactive.</string>
+    <string name="status_ok">Listener active.</string>
+
+    <string name="notif_channel_fg">Forwarding service</string>
+    <string name="notif_fg_title">Private AI Automator is running</string>
+    <string name="notif_fg_text">Forwarding captured messages to your Apps Script.</string>
+</resources>

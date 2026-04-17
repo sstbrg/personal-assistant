@@ -1,0 +1,23 @@
+{
+  "timeZone": "Asia/Jerusalem",
+  "dependencies": {
+    "enabledAdvancedServices": [
+      { "userSymbol": "Gmail", "serviceId": "gmail", "version": "v1" },
+      { "userSymbol": "Calendar", "serviceId": "calendar", "version": "v3" },
+      { "userSymbol": "Tasks", "serviceId": "tasks", "version": "v1" }
+    ]
+  },
+  "oauthScopes": [
+    "https://www.googleapis.com/auth/gmail.readonly",
+    "https://www.googleapis.com/auth/calendar",
+    "https://www.googleapis.com/auth/tasks",
+    "https://www.googleapis.com/auth/script.external_request",
+    "https://www.googleapis.com/auth/script.scriptapp",
+    "https://www.googleapis.com/auth/cloud-platform"
+  ],
+  "webapp": {
+    "access": "ANYONE_ANONYMOUS",
+    "executeAs": "USER_DEPLOYING"
+  },
+  "runtimeVersion": "V8"
+}

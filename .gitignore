@@ -1,0 +1,26 @@
+# Env
+.env
+.env.local
+*.local
+
+# Apps Script
+apps-script/.clasp.json
+apps-script/.clasprc.json
+
+# Android
+android/.gradle/
+android/build/
+android/app/build/
+android/.idea/
+android/local.properties
+android/captures/
+android/*.iml
+android/app/*.iml
+*.keystore
+*.jks
+android/app/release/
+
+# Misc
+.DS_Store
+node_modules/
+*.log
