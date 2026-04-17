@@ -16,9 +16,9 @@ const Setup = {
   _ensureHmacSecret() {
     const props = PropertiesService.getScriptProperties();
     if (props.getProperty('HMAC_SECRET')) return;
-    const bytes = new Array(32);
-    for (let i = 0; i < 32; i++) bytes[i] = Math.floor(Math.random() * 256);
-    // Mix in cryptographic-quality entropy from Utilities.getUuid() too.
+    // Two UUIDs (~122 bits each) plus a timestamp, hashed through SHA-256,
+    // give a 256-bit hex secret. V8's Math.random is not a CSPRNG, so we
+    // don't use it.
     const entropy = Utilities.getUuid() + ':' + Utilities.getUuid() + ':' + new Date().getTime();
     const digest = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, entropy);
     const secret = digest.map(b => ('0' + (b & 0xff).toString(16)).slice(-2)).join('');
