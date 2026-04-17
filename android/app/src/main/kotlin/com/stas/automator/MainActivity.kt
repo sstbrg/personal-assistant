@@ -63,11 +63,15 @@ class MainActivity : AppCompatActivity() {
             ) {
                 requestPostNotifications.launch(Manifest.permission.POST_NOTIFICATIONS)
             }
+            settings.serviceEnabled = true
             startForegroundService(Intent(this, ForwardingService::class.java))
             refreshStatus(status)
         }
 
         findViewById<MaterialButton>(R.id.stopBtn).setOnClickListener {
+            // Persist the disable so the listener won't relaunch the service
+            // on the next incoming WhatsApp notification.
+            settings.serviceEnabled = false
             stopService(Intent(this, ForwardingService::class.java))
             refreshStatus(status)
         }
@@ -103,6 +107,7 @@ class MainActivity : AppCompatActivity() {
         val parts = buildList {
             add(if (access) getString(R.string.status_ok) else getString(R.string.warn_no_access))
             add(if (configured) "Configured." else "URL / HMAC not set.")
+            add(if (settings.serviceEnabled) "Service: ENABLED." else "Service: stopped.")
             add(if (settings.allowlist().isEmpty()) "Allowlist is empty (deny all)." else "Allowlist: ${settings.allowlist().joinToString()}")
         }
         status.text = parts.joinToString("\n")

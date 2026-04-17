@@ -32,6 +32,14 @@ class SettingsRepository(context: Context) {
         get() = prefs.getString(KEY_ALLOWLIST, "") ?: ""
         set(value) = prefs.edit().putString(KEY_ALLOWLIST, value).apply()
 
+    // Persistent on/off switch controlled by the Start/Stop buttons. Stays
+    // false until the user explicitly starts the service, and flips back to
+    // false on Stop so the listener doesn't re-launch the service on the next
+    // incoming WhatsApp notification.
+    var serviceEnabled: Boolean
+        get() = prefs.getBoolean(KEY_ENABLED, false)
+        set(value) = prefs.edit().putBoolean(KEY_ENABLED, value).apply()
+
     fun allowlist(): Set<String> =
         allowlistRaw.split(",")
             .map { it.trim() }
@@ -48,5 +56,6 @@ class SettingsRepository(context: Context) {
         private const val KEY_URL = "webapp_url"
         private const val KEY_SECRET = "hmac_secret"
         private const val KEY_ALLOWLIST = "allowlist"
+        private const val KEY_ENABLED = "service_enabled"
     }
 }

@@ -30,6 +30,9 @@ class WhatsAppListenerService : NotificationListenerService() {
         if (isSystemNoise(title, text)) return
 
         val repo = SettingsRepository(this)
+        // Honor the persistent Stop state: drop notifications instead of
+        // queueing + restarting the service on every incoming message.
+        if (!repo.serviceEnabled) return
         val allowed = repo.allowlist()
         if (!ChatAllowlist.isAllowed(title, allowed)) return
 
