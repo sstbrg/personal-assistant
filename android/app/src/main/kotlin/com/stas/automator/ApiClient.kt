@@ -6,8 +6,6 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 import java.util.concurrent.TimeUnit
-import javax.crypto.Mac
-import javax.crypto.spec.SecretKeySpec
 
 data class ForwardPayload(
     val chat: String,
@@ -44,7 +42,7 @@ class ApiClient(private val settings: SettingsRepository) {
         }
         val dataCanonical = stableStringify(data)
         val signingBase = listOf(1, ts, p.nonce, "whatsapp", dataCanonical).joinToString("|")
-        val sig = hmacSha256Hex(signingBase, secret)
+        val sig = SigningUtil.hmacSha256Hex(signingBase, secret)
 
         val envelope = JSONObject().apply {
             put("v", 1)
@@ -73,13 +71,6 @@ class ApiClient(private val settings: SettingsRepository) {
 
     companion object {
         private val JSON_MEDIA = "application/json; charset=utf-8".toMediaType()
-
-        fun hmacSha256Hex(message: String, key: String): String {
-            val mac = Mac.getInstance("HmacSHA256")
-            mac.init(SecretKeySpec(key.toByteArray(Charsets.UTF_8), "HmacSHA256"))
-            val bytes = mac.doFinal(message.toByteArray(Charsets.UTF_8))
-            return bytes.joinToString("") { "%02x".format(it) }
-        }
 
         // Canonical JSON: sorted keys, no whitespace. Matches Apps Script `_stableStringify`.
         fun stableStringify(value: Any?): String = when (value) {
