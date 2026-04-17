@@ -28,7 +28,23 @@ class MainActivity : AppCompatActivity() {
 
     private val requestPostNotifications = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
-    ) { /* no-op; granted or not, the app still functions for listener purposes */ }
+    ) { granted ->
+        // On API 33+, starting a foreground service while POST_NOTIFICATIONS is
+        // denied risks ForegroundServiceDidNotStartInTimeException (the system
+        // suppresses the persistent notification and eventually kills the
+        // service). Only start once we know the answer.
+        if (granted) {
+            startForegroundService(Intent(this, ForwardingService::class.java))
+        } else {
+            toast("Notifications permission denied — service not started.")
+        }
+        findViewById<TextView>(R.id.statusText)?.let { refreshStatus(it) }
+    }
+
+    private fun hasPostNotificationsPermission(): Boolean =
+        Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
+            ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+            == PackageManager.PERMISSION_GRANTED
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -57,13 +73,13 @@ class MainActivity : AppCompatActivity() {
         }
 
         findViewById<MaterialButton>(R.id.startBtn).setOnClickListener {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-                ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
-                != PackageManager.PERMISSION_GRANTED
-            ) {
+            if (hasPostNotificationsPermission()) {
+                startForegroundService(Intent(this, ForwardingService::class.java))
+            } else {
+                // Service will start inside the permission-result callback
+                // once the user responds to the system dialog.
                 requestPostNotifications.launch(Manifest.permission.POST_NOTIFICATIONS)
             }
-            startForegroundService(Intent(this, ForwardingService::class.java))
             refreshStatus(status)
         }
 
