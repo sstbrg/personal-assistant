@@ -47,7 +47,17 @@ jobs:
 
       - name: Run unit tests
         working-directory: android
-        run: gradle :app:testDebugUnitTest --no-daemon --stacktrace
+        run: |
+          set -o pipefail
+          gradle :app:testDebugUnitTest --no-daemon --stacktrace --info 2>&1 | tee /tmp/gradle.log
+
+      - name: Dump gradle output to summary on failure
+        if: failure()
+        run: |
+          echo '## Gradle/Kotlin output (tail)' >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          tail -400 /tmp/gradle.log >> $GITHUB_STEP_SUMMARY || true
+          echo '```' >> $GITHUB_STEP_SUMMARY
 
       - name: Upload test report on failure
         if: failure()
