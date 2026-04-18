@@ -56,6 +56,60 @@ the message-content path.
 4. `openclaw onboard` to configure channels and model provider.
 5. OpenClaw runs as a systemd user service.
 
+## VM access and in-progress setup
+
+The VM is `openclaw-gw` in `us-central1-a`, project `personalassistant-493705`.
+
+```bash
+# SSH into the VM
+gcloud compute ssh openclaw-gw --zone=us-central1-a --project=personalassistant-493705
+
+# Run a single command on the VM
+gcloud compute ssh openclaw-gw --zone=us-central1-a --project=personalassistant-493705 \
+  --command="<your command>"
+```
+
+### Current state (2026-04-18)
+
+OpenClaw is being installed via `sudo npm install -g openclaw@latest` on the
+e2-micro VM. The install is slow (~5–10 min) due to 0.25 vCPU.
+
+To check if it finished:
+```bash
+gcloud compute ssh openclaw-gw --zone=us-central1-a --project=personalassistant-493705 \
+  --command="which openclaw && openclaw --version || echo 'not installed yet'"
+```
+
+### After install completes — remaining setup steps
+
+1. Run `openclaw onboard` on the VM (interactive — needs SSH session).
+2. Configure `~/.openclaw/openclaw.json` with:
+   - WhatsApp channel (Baileys) with allowlist for the user's contacts.
+   - Model provider pointing at Vertex AI (`gemini-2.5-flash-lite`) on
+     project `personalassistant-493705`, region `us-central1`.
+   - Gmail, Calendar, Drive integrations.
+   - Output to Google Tasks (list "Automator") and Google Calendar (primary).
+3. Pair WhatsApp by scanning the QR code shown during onboard.
+4. Set up OpenClaw as a systemd user service so it survives reboots.
+5. Disable the legacy Apps Script triggers (run `uninstallTriggers` in the
+   Apps Script editor) to avoid duplicate processing.
+
+### Useful VM commands
+
+```bash
+# Check OpenClaw gateway status
+openclaw doctor
+
+# View gateway logs
+journalctl --user -u openclaw -f
+
+# Restart the gateway
+systemctl --user restart openclaw
+
+# Check WhatsApp session
+openclaw status
+```
+
 ## Things not to do
 
 - Don't commit GCP credentials or OpenClaw config files.
