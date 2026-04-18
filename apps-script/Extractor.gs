@@ -1,3 +1,14 @@
+function smokeTest() { return Extractor.smokeTest(); }
+
+function debugWhatsApp() {
+  var data = { body: 'remind me to buy milk tomorrow at 10', chat: 'Test', sender: 'Test', is_group: false, received_at: _nowIso() };
+  console.log('Triage passes: ' + Triage.passes(data.body, data.sender || data.chat));
+  var items = Extractor.extractFromWhatsApp(data);
+  console.log('Items: ' + JSON.stringify(items, null, 2));
+  var written = Writer.writeAll(items, { source: 'whatsapp', sourceRef: data.chat });
+  console.log('Written: ' + written);
+}
+
 const EXTRACTION_SCHEMA = {
   type: 'object',
   properties: {
@@ -118,6 +129,20 @@ const Extractor = {
       'List short prep tasks (if any) the attendee should complete BEFORE this meeting.',
       'Each prep task: kind="task", due=morning of the event in user timezone.',
       'If no prep is needed, return {"kind":"none", ...}.'
+    ].join('\n');
+    return this.callVertex(this._systemPrompt(), user);
+  },
+
+  extractFromDrive(meta) {
+    const user = [
+      'Source: Google Drive (new or updated file)',
+      'File name: ' + (meta.name || ''),
+      'Type: ' + (meta.mimeType || ''),
+      'Modified at: ' + (meta.modifiedTime || ''),
+      'Modified by: ' + (meta.modifiedBy || ''),
+      '',
+      'If this file implies a follow-up action (review, comment, sign, etc.), create a task.',
+      'If no action is needed, return {"kind":"none", ...}.'
     ].join('\n');
     return this.callVertex(this._systemPrompt(), user);
   },

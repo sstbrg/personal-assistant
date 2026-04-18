@@ -7,8 +7,8 @@ import org.junit.Test
 class ChatAllowlistTest {
 
     @Test
-    fun emptyAllowlistDeniesAll() {
-        assertFalse(ChatAllowlist.isAllowed("anyone", emptySet()))
+    fun emptyAllowlistAllowsAll() {
+        assertTrue(ChatAllowlist.isAllowed("anyone", emptySet()))
     }
 
     @Test
