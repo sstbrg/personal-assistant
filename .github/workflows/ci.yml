@@ -1,9 +1,8 @@
 name: CI
 
 on:
-  push:
-    branches: [main, "claude/**"]
-  pull_request:
+  release:
+    types: [published]
 
 permissions:
   contents: read
@@ -43,7 +42,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "8.9"
-          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+          cache-read-only: false
 
       - name: Run unit tests
         working-directory: android
