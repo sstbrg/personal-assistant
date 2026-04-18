@@ -60,7 +60,7 @@ class ApiClient(private val settings: SettingsRepository) {
 
         return try {
             http.newCall(req).execute().use { resp ->
-                Result(resp.isSuccessful, resp.code, resp.body?.string().orEmpty().take(500))
+                interpretResponse(resp.code, resp.body?.string().orEmpty())
             }
         } catch (e: Throwable) {
             Result(false, -1, e.javaClass.simpleName + ": " + (e.message ?: ""))
@@ -71,6 +71,20 @@ class ApiClient(private val settings: SettingsRepository) {
 
     companion object {
         private val JSON_MEDIA = "application/json; charset=utf-8".toMediaType()
+
+        // Apps Script ContentService cannot set HTTP status codes, so every response
+        // is wire-level 200. The server signals failure via `{ "ok": false, ... }`.
+        // A successful forward requires BOTH 2xx AND `ok:true`; otherwise the caller
+        // deletes the queued message and the failure is lost.
+        // Regex avoids pulling org.json into unit tests; server output is our own code,
+        // not arbitrary JSON, so a top-level `"ok":true` match is reliable.
+        private val OK_TRUE_REGEX = Regex("\"ok\"\\s*:\\s*true\\b")
+
+        fun interpretResponse(code: Int, body: String): Result {
+            val httpOk = code in 200..299
+            val serverOk = OK_TRUE_REGEX.containsMatchIn(body)
+            return Result(httpOk && serverOk, code, body.take(500))
+        }
 
         // Canonical JSON: sorted keys, no whitespace. Matches Apps Script `_stableStringify`.
         fun stableStringify(value: Any?): String = when (value) {
