@@ -49,6 +49,10 @@ function _canonicalSigningBase(p) {
   return [p.v, p.ts, p.nonce, p.source, _stableStringify(p.data)].join('|');
 }
 
+// INVARIANT: payload data must not contain floats or doubles. JS JSON.stringify
+// emits "1.5e+100" while Kotlin's Double.toString emits "1.5E100" — signatures
+// would diverge silently for any non-integral number. If you add a numeric
+// field, keep it integral on both sides.
 function _stableStringify(obj) {
   if (obj === null || typeof obj !== 'object') return JSON.stringify(obj);
   if (Array.isArray(obj)) return '[' + obj.map(_stableStringify).join(',') + ']';

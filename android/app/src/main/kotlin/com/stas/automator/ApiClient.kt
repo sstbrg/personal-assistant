@@ -87,6 +87,11 @@ class ApiClient(private val settings: SettingsRepository) {
         }
 
         // Canonical JSON: sorted keys, no whitespace. Matches Apps Script `_stableStringify`.
+        //
+        // INVARIANT: payload data must not contain floats or doubles. Kotlin's
+        // Double.toString emits "1.5E100" while JS JSON.stringify emits "1.5e+100" —
+        // signatures would diverge silently for any non-integral number. If you add a
+        // numeric field, keep it integral (Int/Long) on both sides.
         fun stableStringify(value: Any?): String = when (value) {
             null, JSONObject.NULL -> "null"
             is JSONObject -> {
