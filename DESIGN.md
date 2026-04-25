@@ -1,55 +1,61 @@
 # Private AI Automator — Design Guide
 
-**Status:** Active — OpenClaw gateway on GCP free-tier VM
+**Status:** Design spec for Claude Code implementation
 **Owner:** Stas
-**Last updated:** 2026-04-18
+**Last updated:** 2026-04-17
 
 ## 0. TL;DR
 
-A personal AI assistant that turns WhatsApp messages, Gmail, Google Calendar,
-and Google Drive activity into Google Tasks and Calendar events, with two hard
+A personal AI assistant that turns WhatsApp messages, Gmail, and Google
+Calendar activity into Google Tasks and Calendar events, with two hard
 constraints:
 
-- **Near-zero cost.** GCP free-tier e2-micro VM + Vertex AI inference at
-  personal volume (expected $0.05–$0.50/month).
+- **Near-zero cost.** No paid infra. Only variable cost is Vertex AI inference
+  at personal volume (expected $0.05–$0.50/month).
 - **No third-party data exposure.** All components run inside the user's own
-  GCP tenant. Vertex AI enterprise ToS guarantees no training on inputs.
-  Message content only leaves the VM to reach Vertex AI within the same
-  GCP project.
+  Google account and GCP tenant. Vertex AI enterprise ToS guarantees no
+  training on inputs.
 
-The system uses [OpenClaw](https://github.com/openclaw/openclaw) as the
-gateway, running on a GCP free-tier e2-micro VM. OpenClaw connects to
-WhatsApp (via Baileys/WhatsApp Web), Gmail, Google Calendar, and Google Drive,
-providing two-way messaging including self-reminders.
+The design deliberately avoids n8n, Evolution API, Baileys, Docker, and any
+rented VM. It is built on three things the user already has or can stand up
+inside their own Google identity: an Android phone, a Google Workspace account,
+and a GCP project.
 
 ## 1. Goals and Non-Goals
 
 ### 1.1 Goals
 
-- Capture incoming signals from Gmail, Google Calendar, Google Drive, and
-  WhatsApp (via WhatsApp Web).
+- Capture incoming signals from Gmail (unread), Google Calendar (new/changed
+  events), and WhatsApp (on-device notifications).
 - Extract actionable tasks/events via LLM with a strict JSON schema.
 - Write results to Google Tasks and Google Calendar under the user's own
   account.
-- Two-way WhatsApp messaging, including self-reminders.
 - Keep message content inside the user's tenant end-to-end. No third-party AI
-  vendor.
+  vendor. No community-run relay.
+- Be buildable by Claude Code in a single session, with explicit
+  human-in-the-loop gates where OAuth and billing decisions require them.
 
 ### 1.2 Non-goals
 
 - History backfill. Everything is forward-only from install.
+- Replying on the user's behalf. Read-only capture for v1. RemoteInput-based
+  reply is a v2 extension.
 - Multi-user / SaaS. This is a single-tenant system for one person.
+- Cross-platform mobile. Android only. iOS has no equivalent to
+  NotificationListenerService.
+- Muted WhatsApp chats. Android does not deliver notifications for them; they
+  are structurally invisible to this system.
 
-### 1.3 Architecture decisions
+### 1.3 Explicitly rejected alternatives
 
-| Decision | Rationale |
+| Alternative | Why rejected |
 |---|---|
-| OpenClaw + Baileys for WhatsApp | Full two-way messaging including self-reminders. ToS gray area accepted for personal single-user use. |
-| GCP free-tier e2-micro VM | Always-on, no cost. Replaces the need for an Android notification listener. |
-| Vertex AI (not public Gemini API) | Enterprise ToS — no training on inputs. Privacy constraint. |
-| WhatsApp Business Cloud API rejected | Requires dedicating the number to a Business account. |
-| Gemini API free tier rejected | Free tier data may be used to improve Google products. |
-| Third-party AI vendors rejected | Adds a data boundary the user wants to avoid. |
+| whatsapp-web.js / Baileys / Evolution API | Reverse-engineered WhatsApp Web protocol. ToS gray area regardless of where it's hosted. |
+| WhatsApp Business Cloud API | Requires dedicating the number to a Business account; incompatible with personal WhatsApp on the same line. |
+| n8n / Zapier / Make | Requires a VM or paid tier. No orchestration value that Apps Script doesn't already provide for three triggers. |
+| Gemini API free tier (AI Studio) | Free tier data may be used to improve Google products. Violates privacy constraint. |
+| Groq / Cerebras / Mistral free tier | Third-party AI vendor. Adds a data boundary the user explicitly wants to avoid. |
+| Local inference on Legion Pro / Pi 5 | User declined. |
 
 ## 2. Architecture
 

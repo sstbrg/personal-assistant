@@ -1,8 +1,8 @@
 # Private AI Automator
 
-A personal AI assistant that turns WhatsApp messages, Gmail, Google Calendar,
-and Google Drive activity into Google Tasks and Calendar events, running
-end-to-end inside the user's own Google identity. No third-party data exposure.
+A personal AI assistant that turns WhatsApp messages, Gmail, and Google Calendar
+activity into Google Tasks and Calendar events, running end-to-end inside the
+user's own Google identity. No third-party data exposure, no rented infra.
 
 - Full spec: [DESIGN.md](./DESIGN.md)
 - Setup guide: [docs/SETUP.md](./docs/SETUP.md)
@@ -11,22 +11,14 @@ end-to-end inside the user's own Google identity. No third-party data exposure.
 
 ## Architecture
 
-- **OpenClaw gateway** — runs on a GCP free-tier e2-micro VM. Connects to
-  WhatsApp (via Baileys/WhatsApp Web), Gmail (Pub/Sub), Google Calendar, and
-  Google Drive. Provides two-way WhatsApp messaging including self-reminders.
+- **Android app** — a `NotificationListenerService` that captures WhatsApp
+  notifications and forwards HMAC-signed payloads to the user's Apps Script.
+- **Apps Script Web App** — runs as the user, polls Gmail and Calendar,
+  calls Vertex AI with a strict JSON schema, and writes to Tasks/Calendar.
 - **Vertex AI (user's own GCP project)** — `gemini-2.5-flash-lite` with
-  structured output for task/event extraction.
-- **Google Tasks / Calendar** — output destinations, accessed via Google APIs.
+  `responseSchema` for deterministic structured output.
 
-### Legacy (phase 0)
+## Build
 
-The `apps-script/` and `android/` directories contain the original phase-0
-implementation (Apps Script webhook + Android notification listener). This has
-been superseded by the OpenClaw-based architecture above.
-
-## Setup
-
-1. GCP project with Vertex AI, Compute Engine, and Google APIs enabled.
-2. Free-tier e2-micro VM running OpenClaw gateway as a systemd service.
-3. `openclaw onboard` to configure WhatsApp, Gmail, Calendar, Drive channels.
-4. Point OpenClaw at Vertex AI on the same GCP project.
+- `apps-script/` — deployed via [`clasp`](https://github.com/google/clasp).
+- `android/` — open in Android Studio, build a debug APK, sideload.
