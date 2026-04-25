@@ -1,10 +1,5 @@
 // One-shot setup functions. Run these manually from the Apps Script editor.
 
-function bootstrap() { Setup.bootstrap(); }
-function rotateSecret() { Setup.rotateSecret(); }
-function installTriggers() { Setup.installTriggers(); }
-function uninstallTriggers() { Setup.uninstallTriggers(); }
-
 const Setup = {
   bootstrap() {
     this._ensureHmacSecret();
@@ -42,15 +37,14 @@ const Setup = {
     for (const t of existing) ScriptApp.deleteTrigger(t);
 
     ScriptApp.newTrigger('pollGmail')
-      .timeBased().everyHours(3).create();
+      .timeBased().everyMinutes(CONFIG.GMAIL_POLL_MINUTES).create();
     ScriptApp.newTrigger('pollCalendar')
       .timeBased().everyMinutes(CONFIG.CALENDAR_POLL_MINUTES).create();
-    ScriptApp.newTrigger('pollDrive')
-      .timeBased().everyHours(3).create();
     ScriptApp.newTrigger('dailyDedupSweep')
       .timeBased().atHour(3).everyDays(1).create();
 
-    console.log('Triggers installed: pollGmail/3h, pollCalendar/' + CONFIG.CALENDAR_POLL_MINUTES + 'm, pollDrive/3h, dailyDedupSweep@03:00');
+    console.log('Triggers installed: pollGmail/' + CONFIG.GMAIL_POLL_MINUTES + 'm, ' +
+                'pollCalendar/' + CONFIG.CALENDAR_POLL_MINUTES + 'm, dailyDedupSweep@03:00');
   },
 
   uninstallTriggers() {

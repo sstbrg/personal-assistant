@@ -1,12 +1,11 @@
 // Non-secret config. Secrets live in PropertiesService.getScriptProperties().
 const CONFIG = {
-  GCP_PROJECT_ID: 'personalassistant-493705',
+  GCP_PROJECT_ID: '',                    // filled by user during setup
   VERTEX_LOCATION: 'us-central1',
   VERTEX_MODEL: 'gemini-2.5-flash-lite',
   USER_TIMEZONE: 'Asia/Jerusalem',
-  GMAIL_QUERY: 'is:unread newer_than:3h -category:promotions -category:social',
-  DRIVE_POLL_MINUTES: 180,
-  GMAIL_POLL_MINUTES: 180,
+  GMAIL_QUERY: 'is:unread newer_than:1h -category:promotions -category:social',
+  GMAIL_POLL_MINUTES: 5,
   CALENDAR_POLL_MINUTES: 15,
   CALENDAR_LOOKAHEAD_DAYS: 14,
   TASKS_LIST_NAME: 'Automator',          // auto-created if missing
